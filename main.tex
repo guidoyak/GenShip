@@ -3,7 +3,7 @@
 % Auto-generated from instructions.md by scripts/refresh.py
 % Do not edit section ordering manually here; update instructions.md instead.
 % ==============================================================================
-\documentclass[9pt,twocolumn,a4paper]{extarticle}
+\documentclass[8pt,twocolumn,a4paper]{extarticle}
 
 % --- Encoding & Times New Roman Font ---
 \usepackage[utf8]{inputenc}
@@ -41,24 +41,24 @@
 
 % --- Typography Rules from instructions.md ---
 % Title: 14pt, Times New Roman, Bold
-% Section (Paragraph Title): 12pt, Times New Roman, Bold
-% Subsection (Paragraph Subtitle): 11pt, Times New Roman, Bold
-% Main Text: 9pt, Times New Roman, Normal
+% Section (Paragraph Title): 11pt, Times New Roman, Bold
+% Subsection (Paragraph Subtitle): 10pt, Times New Roman, Bold
+% Main Text: 8pt, Times New Roman, Normal
 \usepackage{titlesec}
 \titleformat{\section}
-  {\fontsize{12}{14.5}\selectfont\bfseries}
+  {\raggedright\fontsize{11}{13.5}\selectfont\bfseries}
   {\thesection.}{0.5em}{}
 \titlespacing*{\section}{0pt}{10pt plus 2pt minus 2pt}{4pt plus 1pt minus 1pt}
 
 \titleformat{\subsection}
-  {\fontsize{11}{13.5}\selectfont\bfseries}
+  {\raggedright\fontsize{10}{12.5}\selectfont\bfseries}
   {\thesubsection}{0.5em}{}
 \titlespacing*{\subsection}{0pt}{8pt plus 2pt minus 1pt}{3pt plus 1pt minus 1pt}
 
 % --- Mathematics, Tables, Figures & Captions ---
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
-\graphicspath{{introduction/images/}{introduction/}{paragraph_1/images/}{paragraph_1/}{paragraph_2/images/}{paragraph_2/}{conclusions/images/}{conclusions/}{appendices/images/}{appendices/}}
+\graphicspath{{introduction/images/}{introduction/}{the_generational_problem_minimizing_spaceship_population_maintaining_variability_continuity_and_social_stability/images/}{the_generational_problem_minimizing_spaceship_population_maintaining_variability_continuity_and_social_stability/}{the_main_constraints_of_achieving_human_interstellar_travel/images/}{the_main_constraints_of_achieving_human_interstellar_travel/}{a_possible_low_tech_approach/images/}{a_possible_low_tech_approach/}{conclusions/images/}{conclusions/}{appendices/images/}{appendices/}}
 \usepackage{booktabs}
 \usepackage[font=small,labelfont=bf]{caption}
 \usepackage{subcaption}
@@ -105,8 +105,9 @@
 
 % --- Paper Sections (Ordered as in instructions.md) ---
 \input{introduction/introduction}
-\input{paragraph_1/paragraph_1}
-\input{paragraph_2/paragraph_2}
+\input{the_generational_problem_minimizing_spaceship_population_maintaining_variability_continuity_and_social_stability/the_generational_problem_minimizing_spaceship_population_maintaining_variability_continuity_and_social_stability}
+\input{the_main_constraints_of_achieving_human_interstellar_travel/the_main_constraints_of_achieving_human_interstellar_travel}
+\input{a_possible_low_tech_approach/a_possible_low_tech_approach}
 \input{conclusions/conclusions}
 
 \input{references/references}

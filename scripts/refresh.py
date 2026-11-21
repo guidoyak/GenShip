@@ -325,12 +325,18 @@ can be placed inside the \texttt{appendices/} folder and included here.
                 encoding="utf-8",
             )
         else:
+            safe_name = (
+                section_name.replace("&", r"\&")
+                .replace("%", r"\%")
+                .replace("#", r"\#")
+                .replace("_", r"\_")
+            )
             tex_file.write_text(
-                f"""\\section{{{section_name}}}
+                f"""\\section{{{safe_name}}}
 \\label{{sec:{slug}}}
 
-Content for {section_name} goes here. Place section figures in
-\\texttt{{{slug}/images/}} and tables in \\texttt{{{slug}/tables/}}.
+Content for \\emph{{{safe_name}}} goes here. Place section figures in this
+folder's \\texttt{{images/}} subdirectory and tables in \\texttt{{tables/}}.
 """,
                 encoding="utf-8",
             )
@@ -428,12 +434,12 @@ def generate_main_tex(meta: dict, sections: list[str], typography: dict) -> None
 % Main Text: {body_size}pt, {typography["body"]["font"]}, {typography["body"]["format"]}
 \\usepackage{{titlesec}}
 \\titleformat{{\\section}}
-  {{\\fontsize{{{sec_size}}}{{{sec_size + 2.5}}}\\selectfont{sec_fmt}}}
+  {{\\raggedright\\fontsize{{{sec_size}}}{{{sec_size + 2.5}}}\\selectfont{sec_fmt}}}
   {{\\thesection.}}{{0.5em}}{{}}
 \\titlespacing*{{\\section}}{{0pt}}{{10pt plus 2pt minus 2pt}}{{4pt plus 1pt minus 1pt}}
 
 \\titleformat{{\\subsection}}
-  {{\\fontsize{{{subsec_size}}}{{{subsec_size + 2.5}}}\\selectfont{subsec_fmt}}}
+  {{\\raggedright\\fontsize{{{subsec_size}}}{{{subsec_size + 2.5}}}\\selectfont{subsec_fmt}}}
   {{\\thesubsection}}{{0.5em}}{{}}
 \\titlespacing*{{\\subsection}}{{0pt}}{{8pt plus 2pt minus 1pt}}{{3pt plus 1pt minus 1pt}}
 
