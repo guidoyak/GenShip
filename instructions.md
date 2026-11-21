@@ -8,16 +8,17 @@ Initial sections:
 From here starts the paragraphs:
 
 -Introduction;
--Paragraph 1;
--Paragraph 2;
--Conclusions;
--References;
+-The generational problem: minimizing spaceship population maintaining variability, continuity and social stability
+-The main constraints of achieving human interstellar travel
+-A possible low-tech approach
+-Conclusions
+-References
 
 -Appendices;
 
 Instructions for the formatting of the text:
 
 Title: size=14 font="Times New Roman" format="Bold"
-Paragraphs titles: size=12 font="Times New Roman" format="Bold"
-Paragraphs subtitles: size=11 font="Times New Roman" format="Bold"
-Main text: size=9 font="Times New Roman" format="Normal"
+Paragraphs titles: size=11 font="Times New Roman" format="Bold"
+Paragraphs subtitles: size=10 font="Times New Roman" format="Bold"
+Main text: size=8 font="Times New Roman" format="Normal"
