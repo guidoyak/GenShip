@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Generation Ship: Scientific Paper Working Draft</title>
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --paper: #ffffff;
+      --ink: #1a202c;
+      --muted: #4a5568;
+      --accent: #1d4ed8;
+      --accent-soft: #eff6ff;
+      --border: #e2e8f0;
+      --shadow: 0 4px 24px rgba(15, 23, 42, 0.06);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.65;
+    }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+    }
+    .topbar-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--ink);
+    }
+    .status-pill {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: 1px solid #bfdbfe;
+    }
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.45rem 0.9rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--ink);
+      transition: all 0.15s ease;
+    }
+    .btn:hover {
+      border-color: #cbd5e1;
+      background: #f8fafc;
+    }
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .btn-primary:hover {
+      background: #1e40af;
+      border-color: #1e40af;
+    }
+    .btn.active-tab {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: #93c5fd;
+    }
+    .layout {
+      max-width: 1180px;
+      margin: 1.75rem auto 3rem;
+      padding: 0 1.5rem;
+      display: grid;
+      grid-template-columns: 240px minmax(0, 1fr);
+      gap: 1.75rem;
+      align-items: start;
+    }
+    .sidebar {
+      position: sticky;
+      top: 4.5rem;
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.15rem 1.2rem;
+      box-shadow: var(--shadow);
+    }
+    .sidebar h3 {
+      margin: 0 0 0.7rem;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+    .toc {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .toc li {
+      margin: 0.35rem 0;
+    }
+    .toc a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.88rem;
+      display: block;
+      padding: 0.2rem 0.45rem;
+      border-radius: 6px;
+    }
+    .toc a:hover {
+      color: var(--accent);
+      background: var(--accent-soft);
+    }
+    .meta-box {
+      margin-top: 1rem;
+      padding-top: 0.9rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    .meta-box div {
+      margin-bottom: 0.35rem;
+    }
+    .paper-card {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 2.5rem 3rem;
+      box-shadow: var(--shadow);
+      font-family: "Times New Roman", Times, Georgia, serif;
+    }
+    .paper-header {
+      text-align: center;
+      padding-bottom: 1.5rem;
+      margin-bottom: 1.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .paper-title {
+      font-size: 1.85rem;
+      line-height: 1.25;
+      margin: 0 0 0.65rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .paper-author {
+      font-size: 1.08rem;
+      margin: 0.25rem 0;
+      font-weight: 500;
+    }
+    .paper-affiliation {
+      font-size: 0.92rem;
+      font-style: italic;
+      color: var(--muted);
+      margin: 0.2rem 0;
+    }
+    .paper-contacts {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    .abstract-box {
+      background: #f8fafc;
+      border-left: 3px solid var(--accent);
+      padding: 1rem 1.25rem;
+      border-radius: 0 8px 8px 0;
+      margin-bottom: 1.25rem;
+      font-size: 0.96rem;
+    }
+    .keywords {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      align-items: center;
+      margin-bottom: 1.75rem;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .kw-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-right: 0.2rem;
+    }
+    .kw-badge {
+      font-size: 0.78rem;
+      background: #f1f5f9;
+      color: #334155;
+      padding: 0.18rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid #e2e8f0;
+    }
+    .paper-columns {
+      column-count: 2;
+      column-gap: 2.2rem;
+      font-size: 0.98rem;
+      text-align: justify;
+    }
+    .paper-section {
+      margin-bottom: 1.4rem;
+    }
+    .paper-section h1, .paper-section h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin: 1.2rem 0 0.5rem;
+      color: #0f172a;
+      break-after: avoid;
+      text-align: left;
+    }
+    .paper-section h3 {
+      font-size: 1.08rem;
+      font-weight: 700;
+      margin: 0.9rem 0 0.35rem;
+      color: #1e293b;
+      break-after: avoid;
+      text-align: left;
+    }
+    .paper-section table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: 0.86rem;
+      break-inside: avoid;
+      text-align: left;
+    }
+    .paper-section th, .paper-section td {
+      padding: 0.4rem 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .paper-section thead th {
+      border-top: 2px solid #0f172a;
+      border-bottom: 1px solid #0f172a;
+      font-weight: 700;
+    }
+    .paper-section tbody tr:last-child td {
+      border-bottom: 2px solid #0f172a;
+    }
+    .ref-list {
+      list-style: none;
+      padding-left: 0;
+      font-size: 0.9rem;
+      text-align: left;
+    }
+    .ref-list li {
+      margin-bottom: 0.5rem;
+    }
+    .pdf-view {
+      display: none;
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .pdf-toolbar {
+      padding: 0.75rem 1.2rem;
+      background: #f8fafc;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .pdf-frame {
+      width: 100%;
+      height: 82vh;
+      border: none;
+      display: block;
+    }
+    @media (max-width: 960px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { position: static; }
+      .paper-card { padding: 1.5rem; }
+      .paper-columns { column-count: 1; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <span>GenShip Paper</span>
+        <span class="status-pill">Working Draft</span>
+      </div>
+      <div class="actions">
+        <button id="btn-html" class="btn active-tab" type="button" onclick="showView('html')">HTML Paper View</button>
+        <button id="btn-pdf" class="btn" type="button" onclick="showView('pdf')">PDF Preview</button>
+        <a class="btn btn-primary" href="main.pdf" target="_blank" rel="noopener">Download PDF</a>
+        <a class="btn" href="https://github.com/guidoyak/GenShip" target="_blank" rel="noopener">GitHub Repo</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="sidebar">
+      <h3>Contents</h3>
+      <ul class="toc">
+        <li><a href="#abstract">Abstract</a></li>
+        <li><a href="#introduction">Introduction</a></li>
+<li><a href="#paragraph_1">Paragraph 1</a></li>
+<li><a href="#paragraph_2">Paragraph 2</a></li>
+<li><a href="#conclusions">Conclusions</a></li>
+<li><a href="#references">References</a></li>
+<li><a href="#appendices">Appendices</a></li>
+      </ul>
+      <div class="meta-box">
+        <div><strong>Layout:</strong> 2-Column Journal</div>
+        <div><strong>Typography:</strong> Times New Roman (14/12/11/9 pt)</div>
+        <div><strong>Updated:</strong> 2026-11-21 13:27 UTC</div>
+      </div>
+    </aside>
+
+    <div>
+      <article id="view-html" class="paper-card">
+        <div class="paper-header">
+          <h1 class="paper-title">Generation Ship: Scientific Paper Working Draft</h1>
+          <div class="paper-author">Author Name</div>
+          <div class="paper-affiliation">Department / Institution, City, Country</div>
+          <div class="paper-contacts">author@example.com</div>
+        </div>
+
+        <section id="abstract" class="abstract-box">
+          <strong>Abstract&mdash;</strong>This provisional working draft initializes the automated LaTeX scientific paper workflow for the GenShip project. All sections, typography rules, cross-references (figures, tables, equations), and bibliographic citations are synchronized directly from instructions.md.
+        </section>
+
+        <div class="keywords">
+          <span class="kw-label">Keywords:</span>
+          <span class="kw-badge">Generation Ship</span>
+<span class="kw-badge">Interstellar Travel</span>
+<span class="kw-badge">Scientific Paper</span>
+<span class="kw-badge">LaTeX</span>
+        </div>
+
+        <div class="paper-columns">
+          <section id="introduction" class="paper-section">
+<h1 id="sec:introduction">1. Introduction</h1>
+<p>This provisional introduction outlines the structure and workflow of
+the paper. Scientific concepts, propulsion architectures, and habitat
+design requirements for interstellar generation ships have been
+extensively explored in the literature <a href="#ref-hein2012world">[1,
+2]</a>.</p>
+<h2 id="subsec:scope">1.1 Scope and Objectives</h2>
+<p>Each section of this manuscript lives in its own dedicated directory
+containing its LaTeX source, figures (<code>images/</code>), and tables
+(<code>tables/</code>). Cross-references such as <a
+href="#sec:paragraph_1">section 2</a> and <a
+href="#tab:sample_parameters">table 1</a> update automatically whenever
+sections, figures, tables, or citations are added or reordered.</p>
+</section>
+
+<section id="paragraph_1" class="paper-section">
+<h1 id="sec:paragraph_1">2. Paragraph 1</h1>
+<p>Content for Paragraph 1 will be developed here. You can organize
+subsections using <code>\subsection{...}</code>, which automatically
+inherits the 11 pt bold Times New Roman styling configured in
+<code>instructions.md</code>.</p>
+<h2 id="subsec:methodology">2.1 Methodology Overview</h2>
+<p><a href="#tab:sample_parameters">Table 1</a> provides a placeholder
+table demonstrating standard journal formatting and automatic
+cross-referencing across paragraphs.</p>
+<div id="tab:sample_parameters">
+<table>
+<caption>Provisional baseline parameters for template
+verification.</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Parameter</th>
+<th style="text-align: center;">Symbol</th>
+<th style="text-align: center;">Provisional Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Target Distance</td>
+<td style="text-align: center;"><span
+class="math inline">\(d\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(4.24\text{
+ly}\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Cruise Velocity</td>
+<td style="text-align: center;"><span
+class="math inline">\(v_c\)</span></td>
+<td style="text-align: center;"><span
+class="math inline">\(0.05\,c\)</span></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Mission Duration</td>
+<td style="text-align: center;"><span
+class="math inline">\(T\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\sim
+85\text{ yr}\)</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section id="paragraph_2" class="paper-section">
+<h1 id="sec:paragraph_2">3. Paragraph 2</h1>
+<p>Content for Paragraph 2 will be developed here. Notice how references
+to elements in other folders—such as <a
+href="#tab:sample_parameters">table 1</a> in <a
+href="#sec:paragraph_1">section 2</a> or literature entries <a
+href="#ref-hein2012world">[1]</a>—remain automatically synchronized
+after every rebuild.</p>
+<h2 id="subsec:discussion">3.1 Preliminary Discussion</h2>
+<p>Figures placed inside <code>paragraph_2/images/</code> can be
+included with <code>\includegraphics</code> and referenced anywhere in
+the document using <code>\label{fig:...}</code> and
+<code>\cref{fig:...}</code>.</p>
+</section>
+
+<section id="conclusions" class="paper-section">
+<h1 id="sec:conclusions">4. Conclusions</h1>
+<p>This provisional manuscript confirms that the modular folder layout,
+two-column scientific journal styling, running page headers, automatic
+numbering of figures/tables/citations, PDF generation, and public HTML
+landing page pipeline are operational.</p>
+</section>
+
+<section id="references" class="paper-section">
+  <h2>References</h2>
+  <ol class="ref-list"><li id="ref-hein2012world"><strong>[1]</strong> Hein, Andreas M. and Pak, Mikhail and Putz, Daniel and Buhler, Christian and Reiss, Philipp, <em>World Ships -- Architectures &amp; Feasibility Revisited</em>, Journal of the British Interplanetary Society, vol. 65, pp. 119--133, 2012.</li>
+<li id="ref-smith2014star"><strong>[2]</strong> Smith, Cameron M. and Davies, Evan T., <em>Emigrating Beyond Earth: Human Adaptation and Space Colonization</em>, Springer, 2012.</li></ol>
+</section>
+
+<section id="appendices" class="paper-section">
+<h1 id="app:supplementary">A. Supplementary Notes</h1>
+<p>Additional derivations, extended data tables, and supporting
+technical notes can be placed inside the <code>appendices/</code> folder
+and included here.</p>
+</section>
+        </div>
+      </article>
+
+      <section id="view-pdf" class="pdf-view">
+        <div class="pdf-toolbar">
+          <span>Compiled LaTeX Output (<code>main.pdf</code>)</span>
+          <a class="btn" href="main.pdf" download>Save main.pdf</a>
+        </div>
+        <iframe class="pdf-frame" src="main.pdf" title="Compiled Scientific Paper PDF"></iframe>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    function showView(mode) {
+      const htmlEl = document.getElementById('view-html');
+      const pdfEl = document.getElementById('view-pdf');
+      const btnHtml = document.getElementById('btn-html');
+      const btnPdf = document.getElementById('btn-pdf');
+      if (mode === 'pdf') {
+        htmlEl.style.display = 'none';
+        pdfEl.style.display = 'block';
+        btnHtml.classList.remove('active-tab');
+        btnPdf.classList.add('active-tab');
+      } else {
+        htmlEl.style.display = 'block';
+        pdfEl.style.display = 'none';
+        btnHtml.classList.add('active-tab');
+        btnPdf.classList.remove('active-tab');
+      }
+    }
+  </script>
+</body>
+</html>

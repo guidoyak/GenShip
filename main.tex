@@ -1,0 +1,117 @@
+% !TEX program = pdflatex
+% ==============================================================================
+% Auto-generated from instructions.md by scripts/refresh.py
+% Do not edit section ordering manually here; update instructions.md instead.
+% ==============================================================================
+\documentclass[9pt,twocolumn,a4paper]{extarticle}
+
+% --- Encoding & Times New Roman Font ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{mathptmx} % Times New Roman metric-compatible font
+\usepackage{microtype}
+
+% --- Page Geometry (Two-Column Scientific Journal Layout) ---
+\usepackage[
+  a4paper,
+  top=22mm,
+  bottom=22mm,
+  left=18mm,
+  right=18mm,
+  columnsep=6mm,
+  headheight=14pt,
+  headsep=8mm
+]{geometry}
+
+% --- Running Header (Author + Page Number at Top of Pages) ---
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textit{Author Name}}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+\fancypagestyle{plain}{%
+  \fancyhf{}%
+  \fancyhead[L]{\small\textit{Author Name}}%
+  \fancyhead[R]{\small\thepage}%
+  \renewcommand{\headrulewidth}{0.4pt}%
+  \renewcommand{\footrulewidth}{0pt}%
+}
+
+% --- Typography Rules from instructions.md ---
+% Title: 14pt, Times New Roman, Bold
+% Section (Paragraph Title): 12pt, Times New Roman, Bold
+% Subsection (Paragraph Subtitle): 11pt, Times New Roman, Bold
+% Main Text: 9pt, Times New Roman, Normal
+\usepackage{titlesec}
+\titleformat{\section}
+  {\fontsize{12}{14.5}\selectfont\bfseries}
+  {\thesection.}{0.5em}{}
+\titlespacing*{\section}{0pt}{10pt plus 2pt minus 2pt}{4pt plus 1pt minus 1pt}
+
+\titleformat{\subsection}
+  {\fontsize{11}{13.5}\selectfont\bfseries}
+  {\thesubsection}{0.5em}{}
+\titlespacing*{\subsection}{0pt}{8pt plus 2pt minus 1pt}{3pt plus 1pt minus 1pt}
+
+% --- Mathematics, Tables, Figures & Captions ---
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\graphicspath{{introduction/images/}{introduction/}{paragraph_1/images/}{paragraph_1/}{paragraph_2/images/}{paragraph_2/}{conclusions/images/}{conclusions/}{appendices/images/}{appendices/}}
+\usepackage{booktabs}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{subcaption}
+\usepackage{balance}
+
+% --- References & Automatic Cross-Referencing ---
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue!60!black,citecolor=blue!60!black,urlcolor=blue!60!black]{hyperref}
+\usepackage[nameinlink,noabbrev]{cleveref}
+\usepackage{xcolor}
+
+% --- Paper Metadata ---
+\newcommand{\PaperTitle}{Generation Ship: Scientific Paper Working Draft}
+\newcommand{\PaperAuthor}{Author Name}
+\newcommand{\PaperAffiliation}{Department / Institution, City, Country}
+\newcommand{\PaperContacts}{author@example.com}
+\newcommand{\PaperKeywords}{Generation Ship, Interstellar Travel, Scientific Paper, LaTeX}
+
+\begin{document}
+\thispagestyle{fancy}
+
+% --- Full-Width Title, Author, Affiliation, Abstract & Keywords ---
+\twocolumn[
+  \begin{@twocolumnfalse}
+    \begin{center}
+      {\fontsize{14}{17}\selectfont\bfseries \PaperTitle \par}
+      \vspace{8pt}
+      {\fontsize{10}{12}\selectfont \PaperAuthor \par}
+      \vspace{3pt}
+      {\fontsize{9}{11}\selectfont\textit{\PaperAffiliation} \par}
+      {\fontsize{9}{11}\selectfont\texttt{\PaperContacts} \par}
+    \end{center}
+    \vspace{6pt}
+    \noindent\rule{\textwidth}{0.4pt}\par
+    \vspace{5pt}
+    \noindent\textbf{Abstract---}This provisional working draft initializes the automated LaTeX scientific paper workflow for the GenShip project. All sections, typography rules, cross-references (figures, tables, equations), and bibliographic citations are synchronized directly from instructions.md.\par
+    \vspace{5pt}
+    \noindent\textbf{Keywords---}\textit{\PaperKeywords}\par
+    \vspace{5pt}
+    \noindent\rule{\textwidth}{0.4pt}\par
+    \vspace{10pt}
+  \end{@twocolumnfalse}
+]
+
+% --- Paper Sections (Ordered as in instructions.md) ---
+\input{introduction/introduction}
+\input{paragraph_1/paragraph_1}
+\input{paragraph_2/paragraph_2}
+\input{conclusions/conclusions}
+
+\input{references/references}
+
+\appendix
+\input{appendices/appendices}
+
+\end{document}
