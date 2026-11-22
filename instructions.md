@@ -20,7 +20,7 @@ Instructions for the formatting of the text:
 
 Title: size=14 font="Times New Roman" format="Bold"
 Paragraphs titles: size=11 font="Times New Roman" format="Bold"
-Paragraphs subtitles: size=10 font="Times New Roman" format="Bold"
+Paragraphs subtitles: size=9 font="Times New Roman" format="Bold"
 Main text: size=8 font="Times New Roman" format="Normal"
 
 NEW INSTRUCTIONS:
