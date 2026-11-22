@@ -692,6 +692,12 @@ def render_sections_html(sections: list[dict]) -> tuple[str, list[dict]]:
     pandoc = shutil.which("pandoc")
     labels, cites = parse_aux(ROOT / "main.aux")
 
+    sec_num = 0
+    sub_num = 0
+    subsub_num = 0
+    in_appendix = False
+    app_num = 0
+
     for idx, sec in enumerate(sections, start=1):
         name = sec["title"]
         slug = slugify(name)
@@ -743,11 +749,14 @@ def render_sections_html(sections: list[dict]) -> tuple[str, list[dict]]:
             )
             continue
 
+        if slug in ("appendices", "appendix"):
+            in_appendix = True
+
         raw_tex = tex_file.read_text(encoding="utf-8")
         prepped_tex = preprocess_tex_for_html(raw_tex, labels, cites)
         rendered = ""
         if pandoc:
-            cmd = [pandoc, "--from=latex", "--to=html5", "--mathjax"]
+            cmd = [pandoc, "--from=latex", "--to=html5", "--mathjax", "--wrap=none"]
             proc = subprocess.run(
                 cmd,
                 input=prepped_tex,
@@ -762,24 +771,69 @@ def render_sections_html(sections: list[dict]) -> tuple[str, list[dict]]:
         if not rendered:
             rendered = f"<h1>{html.escape(name)}</h1><pre>{html.escape(raw_tex)}</pre>"
 
-        # Prefix section/subsection headings with their exact LaTeX numbers from main.aux
+        first_h1_text = ""
+
+        # Prefix every h1/h2/h3 heading with exact LaTeX number (from main.aux or sequential fallback)
         def _number_heading(m: re.Match) -> str:
-            tag, hid, inner = m.group(1), m.group(2), m.group(3)
-            if hid in labels:
-                num = labels[hid]["num"]
-                sep = ". " if tag == "h1" else " "
-                return f'<{tag} id="{hid}">{html.escape(num)}{sep}{inner}</{tag}>'
+            nonlocal sec_num, sub_num, subsub_num, app_num, first_h1_text
+            tag = m.group(1)
+            attrs = m.group(2) or ""
+            inner = m.group(3).strip()
+            m_id = re.search(r'id="([^"]+)"', attrs)
+            hid = m_id.group(1) if m_id else ""
+
+            if tag == "h1":
+                if in_appendix:
+                    app_num += 1
+                    fallback = chr(ord("A") + app_num - 1)
+                else:
+                    sec_num += 1
+                    fallback = str(sec_num)
+                sub_num = 0
+                subsub_num = 0
+                num = labels[hid]["num"] if hid in labels else fallback
+                sep = ". "
+                numbered_inner = f"{html.escape(num)}{sep}{inner}"
+                if not first_h1_text:
+                    first_h1_text = re.sub(r"<[^>]+>", "", numbered_inner).strip()
+                return f"<{tag}{attrs}>{numbered_inner}</{tag}>"
+
+            if tag == "h2":
+                sub_num += 1
+                subsub_num = 0
+                parent_lbl = chr(ord("A") + app_num - 1) if in_appendix else str(sec_num)
+                fallback = f"{parent_lbl}.{sub_num}"
+                num = labels[hid]["num"] if hid in labels else fallback
+                if not hid:
+                    hid = f"subsec-{slug}-{sub_num}"
+                    attrs = f'{attrs} id="{hid}"'
+                return f"<{tag}{attrs}>{html.escape(num)} {inner}</{tag}>"
+
+            if tag == "h3":
+                subsub_num += 1
+                parent_lbl = chr(ord("A") + app_num - 1) if in_appendix else str(sec_num)
+                fallback = f"{parent_lbl}.{sub_num}.{subsub_num}"
+                num = labels[hid]["num"] if hid in labels else fallback
+                return f"<{tag}{attrs}>{html.escape(num)} {inner}</{tag}>"
+
             return m.group(0)
 
-        rendered = re.sub(r'<(h[123])\s+id="([^"]+)">(.*?)</\1>', _number_heading, rendered)
+        rendered = re.sub(
+            r"<(h[123])(\b[^>]*)>(.*?)</\1>",
+            _number_heading,
+            rendered,
+            flags=re.DOTALL,
+        )
 
         # Collect rendered subsections (h2) for nested sidebar TOC
         sub_toc: list[tuple[str, str]] = []
-        for m_sub in re.finditer(r'<h2\s+id="([^"]+)">(.*?)</h2>', rendered, flags=re.DOTALL):
+        for m_sub in re.finditer(r'<h2\b[^>]*id="([^"]+)"[^>]*>(.*?)</h2>', rendered, flags=re.DOTALL):
             sub_id = m_sub.group(1)
             sub_txt = re.sub(r"<[^>]+>", "", m_sub.group(2)).strip()
             sub_toc.append((sub_id, sub_txt))
-        toc_entries.append({"id": slug, "label": name, "children": sub_toc})
+
+        toc_label = first_h1_text if first_h1_text else name
+        toc_entries.append({"id": slug, "label": toc_label, "children": sub_toc})
 
         # Prefix table captions with "Table N: "
         def _number_table_caption(m: re.Match) -> str:
