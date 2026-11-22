@@ -5,8 +5,8 @@ Initial sections:
 -Abstract
 -Keywords;
 
-From here starts the paragraphs:
-
+From here starts the paragraphs (each line that starts with "-" is a new paragraph. The subparagraph of each paragraph starts with ">"):
+.
 -Introduction;
 -The generational problem: minimizing spaceship population maintaining variability, continuity and social stability
 -The main constraints of achieving human interstellar travel
