@@ -14,20 +14,22 @@
     :root {
       --bg: #f6f7f9;
       --paper: #ffffff;
-      --ink: #1a202c;
+      --ink: #000000;
+      --ui-ink: #1a202c;
       --muted: #4a5568;
       --accent: #1d4ed8;
+      --latex-link: #000099;
       --accent-soft: #eff6ff;
       --border: #e2e8f0;
-      --shadow: 0 4px 24px rgba(15, 23, 42, 0.06);
+      --shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: var(--bg);
-      color: var(--ink);
-      line-height: 1.65;
+      color: var(--ui-ink);
+      line-height: 1.5;
     }
     .topbar {
       position: sticky;
@@ -53,7 +55,7 @@
       gap: 0.6rem;
       font-weight: 700;
       font-size: 0.95rem;
-      color: var(--ink);
+      color: var(--ui-ink);
     }
     .status-pill {
       font-size: 0.72rem;
@@ -84,7 +86,7 @@
       cursor: pointer;
       border: 1px solid var(--border);
       background: #fff;
-      color: var(--ink);
+      color: var(--ui-ink);
       transition: all 0.15s ease;
     }
     .btn:hover {
@@ -141,7 +143,7 @@
     .toc a {
       color: var(--muted);
       text-decoration: none;
-      font-size: 0.88rem;
+      font-size: 0.85rem;
       display: block;
       padding: 0.2rem 0.45rem;
       border-radius: 6px;
@@ -160,127 +162,209 @@
     .meta-box div {
       margin-bottom: 0.35rem;
     }
+
+    /* === Paper Sheet: Mirrors LaTeX main.tex typography from instructions.md === */
     .paper-card {
       background: var(--paper);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 2.5rem 3rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      max-width: 210mm;
+      margin: 0 auto;
+      padding: 16mm 18mm 22mm;
       box-shadow: var(--shadow);
-      font-family: "Times New Roman", Times, Georgia, serif;
+      color: var(--ink);
+      font-family: "Times New Roman", Times, "Nimbus Roman", "Liberation Serif", Georgia, serif;
+      font-size: 8pt;
+      font-weight: 400;
+      font-style: normal;
+      line-height: 1.25;
+    }
+    .paper-running-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-family: "Times New Roman", Times, "Nimbus Roman", "Liberation Serif", Georgia, serif;
+      font-size: 7pt;
+      border-bottom: 0.4pt solid #000;
+      padding-bottom: 3pt;
+      margin-bottom: 14pt;
+    }
+    .paper-running-author {
+      font-style: italic;
     }
     .paper-header {
       text-align: center;
-      padding-bottom: 1.5rem;
-      margin-bottom: 1.75rem;
-      border-bottom: 1px solid var(--border);
+      margin-bottom: 10pt;
     }
     .paper-title {
-      font-size: 1.85rem;
-      line-height: 1.25;
-      margin: 0 0 0.65rem;
+      font-family: "Times New Roman", Times, "Nimbus Roman", "Liberation Serif", Georgia, serif;
+      font-size: 14pt;
       font-weight: 700;
-      color: #0f172a;
+      font-style: normal;
+      line-height: 1.22;
+      margin: 0 0 8pt;
+      color: var(--ink);
     }
     .paper-author {
-      font-size: 1.08rem;
-      margin: 0.25rem 0;
-      font-weight: 500;
+      font-family: "Times New Roman", Times, "Nimbus Roman", "Liberation Serif", Georgia, serif;
+      font-size: 10pt;
+      font-weight: 400;
+      line-height: 1.2;
+      margin: 0 0 3pt;
     }
     .paper-affiliation {
-      font-size: 0.92rem;
+      font-family: "Times New Roman", Times, "Nimbus Roman", "Liberation Serif", Georgia, serif;
+      font-size: 9pt;
       font-style: italic;
-      color: var(--muted);
-      margin: 0.2rem 0;
+      line-height: 1.22;
+      color: var(--ink);
+      margin: 0 0 2pt;
     }
     .paper-contacts {
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size: 0.82rem;
-      color: var(--muted);
+      font-family: "Courier New", Courier, ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 9pt;
+      line-height: 1.22;
+      color: var(--ink);
     }
-    .abstract-box {
-      background: #f8fafc;
-      border-left: 3px solid var(--accent);
-      padding: 1rem 1.25rem;
-      border-radius: 0 8px 8px 0;
-      margin-bottom: 1.25rem;
-      font-size: 0.96rem;
+    .frontmatter-rule-box {
+      border-top: 0.4pt solid #000;
+      border-bottom: 0.4pt solid #000;
+      padding: 6pt 0;
+      margin: 8pt 0 12pt;
+      font-family: "Times New Roman", Times, "Nimbus Roman", "Liberation Serif", Georgia, serif;
+      font-size: 8pt;
+      font-weight: 400;
+      font-style: normal;
+      line-height: 1.28;
+      text-align: justify;
     }
-    .keywords {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.4rem;
-      align-items: center;
-      margin-bottom: 1.75rem;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    .abstract-line {
+      margin: 0 0 5pt;
     }
-    .kw-label {
-      font-size: 0.78rem;
-      font-weight: 700;
-      color: var(--muted);
-      text-transform: uppercase;
-      margin-right: 0.2rem;
+    .keywords-line {
+      margin: 0;
     }
-    .kw-badge {
-      font-size: 0.78rem;
-      background: #f1f5f9;
-      color: #334155;
-      padding: 0.18rem 0.55rem;
-      border-radius: 999px;
-      border: 1px solid #e2e8f0;
+    .keywords-value {
+      font-style: italic;
     }
     .paper-columns {
       column-count: 2;
-      column-gap: 2.2rem;
-      font-size: 0.98rem;
+      column-gap: 6mm;
+      font-family: "Times New Roman", Times, "Nimbus Roman", "Liberation Serif", Georgia, serif;
+      font-size: 8pt;
+      font-weight: 400;
+      font-style: normal;
+      line-height: 1.25;
       text-align: justify;
+      hyphens: auto;
+    }
+    .paper-columns a {
+      color: var(--latex-link);
+      text-decoration: none;
+    }
+    .paper-columns a:hover {
+      text-decoration: underline;
+    }
+    .paper-columns code {
+      font-family: "Courier New", Courier, ui-monospace, monospace;
+      font-size: 0.95em;
     }
     .paper-section {
-      margin-bottom: 1.4rem;
+      margin-bottom: 8pt;
     }
-    .paper-section h1, .paper-section h2 {
-      font-size: 1.25rem;
+    .paper-section p {
+      margin: 0 0 5pt;
+    }
+    /* Paragraph Titles (\section) */
+    .paper-section h1 {
+      font-family: "Times New Roman", Times, "Nimbus Roman", "Liberation Serif", Georgia, serif;
+      font-size: 11pt;
       font-weight: 700;
-      margin: 1.2rem 0 0.5rem;
-      color: #0f172a;
+      font-style: normal;
+      line-height: 1.22;
+      margin: 10pt 0 4pt;
+      color: var(--ink);
       break-after: avoid;
       text-align: left;
+      hyphens: none;
+    }
+    .paper-section:first-child h1:first-child {
+      margin-top: 0;
+    }
+    /* Paragraph Subtitles (\subsection) */
+    .paper-section h2 {
+      font-family: "Times New Roman", Times, "Nimbus Roman", "Liberation Serif", Georgia, serif;
+      font-size: 10pt;
+      font-weight: 700;
+      font-style: normal;
+      line-height: 1.22;
+      margin: 8pt 0 3pt;
+      color: var(--ink);
+      break-after: avoid;
+      text-align: left;
+      hyphens: none;
     }
     .paper-section h3 {
-      font-size: 1.08rem;
+      font-family: "Times New Roman", Times, "Nimbus Roman", "Liberation Serif", Georgia, serif;
+      font-size: 8pt;
       font-weight: 700;
-      margin: 0.9rem 0 0.35rem;
-      color: #1e293b;
+      font-style: italic;
+      line-height: 1.22;
+      margin: 6pt 0 2pt;
+      color: var(--ink);
       break-after: avoid;
       text-align: left;
+    }
+    .paper-section figure {
+      margin: 8pt 0;
+      text-align: center;
+      break-inside: avoid;
+    }
+    .paper-section figure img {
+      max-width: 100%;
+      height: auto;
+    }
+    .paper-section figcaption,
+    .paper-section caption {
+      font-family: "Times New Roman", Times, "Nimbus Roman", "Liberation Serif", Georgia, serif;
+      font-size: 7.5pt;
+      margin-bottom: 4pt;
+      text-align: center;
+      color: var(--ink);
     }
     .paper-section table {
       width: 100%;
       border-collapse: collapse;
-      margin: 1rem 0;
-      font-size: 0.86rem;
+      margin: 8pt 0;
+      font-family: "Times New Roman", Times, "Nimbus Roman", "Liberation Serif", Georgia, serif;
+      font-size: 8pt;
       break-inside: avoid;
       text-align: left;
     }
     .paper-section th, .paper-section td {
-      padding: 0.4rem 0.5rem;
-      border-bottom: 1px solid var(--border);
+      padding: 2.5pt 4pt;
     }
     .paper-section thead th {
-      border-top: 2px solid #0f172a;
-      border-bottom: 1px solid #0f172a;
+      border-top: 0.9pt solid #000;
+      border-bottom: 0.5pt solid #000;
       font-weight: 700;
     }
     .paper-section tbody tr:last-child td {
-      border-bottom: 2px solid #0f172a;
+      border-bottom: 0.9pt solid #000;
     }
     .ref-list {
       list-style: none;
       padding-left: 0;
-      font-size: 0.9rem;
+      margin: 4pt 0 0;
+      font-family: "Times New Roman", Times, "Nimbus Roman", "Liberation Serif", Georgia, serif;
+      font-size: 8pt;
+      line-height: 1.25;
       text-align: left;
     }
     .ref-list li {
-      margin-bottom: 0.5rem;
+      margin-bottom: 4pt;
+      padding-left: 16pt;
+      text-indent: -16pt;
     }
     .pdf-view {
       display: none;
@@ -309,7 +393,7 @@
     @media (max-width: 960px) {
       .layout { grid-template-columns: 1fr; }
       .sidebar { position: static; }
-      .paper-card { padding: 1.5rem; }
+      .paper-card { padding: 1.25rem; }
       .paper-columns { column-count: 1; }
     }
   </style>
@@ -344,14 +428,20 @@
 <li><a href="#appendices">Appendices</a></li>
       </ul>
       <div class="meta-box">
-        <div><strong>Layout:</strong> 2-Column Journal</div>
-        <div><strong>Typography:</strong> Times New Roman (14/11/10/8 pt)</div>
-        <div><strong>Updated:</strong> 2026-11-21 13:42 UTC</div>
+        <div><strong>Layout:</strong> 2-Column Journal (A4)</div>
+        <div><strong>Font:</strong> Times New Roman</div>
+        <div><strong>Sizes:</strong> 14 / 11 / 10 / 8 pt</div>
+        <div><strong>Updated:</strong> 2026-11-22 12:21 UTC</div>
       </div>
     </aside>
 
     <div>
       <article id="view-html" class="paper-card">
+        <div class="paper-running-header">
+          <span class="paper-running-author">Author Name</span>
+          <span>1</span>
+        </div>
+
         <div class="paper-header">
           <h1 class="paper-title">Generation Ship: Scientific Paper Working Draft</h1>
           <div class="paper-author">Author Name</div>
@@ -359,17 +449,10 @@
           <div class="paper-contacts">author@example.com</div>
         </div>
 
-        <section id="abstract" class="abstract-box">
-          <strong>Abstract&mdash;</strong>This provisional working draft initializes the automated LaTeX scientific paper workflow for the GenShip project. All sections, typography rules, cross-references (figures, tables, equations), and bibliographic citations are synchronized directly from instructions.md.
+        <section id="abstract" class="frontmatter-rule-box">
+          <p class="abstract-line"><strong>Abstract&mdash;</strong>This provisional working draft initializes the automated LaTeX scientific paper workflow for the GenShip project. All sections, typography rules, cross-references (figures, tables, equations), and bibliographic citations are synchronized directly from instructions.md.</p>
+          <p class="keywords-line"><strong>Keywords&mdash;</strong><span class="keywords-value">Generation Ship, Interstellar Travel, Scientific Paper, LaTeX</span></p>
         </section>
-
-        <div class="keywords">
-          <span class="kw-label">Keywords:</span>
-          <span class="kw-badge">Generation Ship</span>
-<span class="kw-badge">Interstellar Travel</span>
-<span class="kw-badge">Scientific Paper</span>
-<span class="kw-badge">LaTeX</span>
-        </div>
 
         <div class="paper-columns">
           <section id="introduction" class="paper-section">
@@ -429,7 +512,7 @@ landing page pipeline are operational.</p>
 </section>
 
 <section id="references" class="paper-section">
-  <h2>References</h2>
+  <h1>References</h1>
   <ol class="ref-list"><li id="ref-hein2012world"><strong>[1]</strong> Hein, Andreas M. and Pak, Mikhail and Putz, Daniel and Buhler, Christian and Reiss, Philipp, <em>World Ships -- Architectures &amp; Feasibility Revisited</em>, Journal of the British Interplanetary Society, vol. 65, pp. 119--133, 2012.</li>
 <li id="ref-smith2014star"><strong>[2]</strong> Smith, Cameron M. and Davies, Evan T., <em>Emigrating Beyond Earth: Human Adaptation and Space Colonization</em>, Springer, 2012.</li></ol>
 </section>

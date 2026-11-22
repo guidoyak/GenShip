@@ -653,7 +653,7 @@ def render_sections_html(sections: list[str]) -> tuple[str, list[tuple[str, str]
             refs_html = "\n".join(ref_items) if ref_items else "<li>References will appear here as citations are added.</li>"
             html_parts.append(
                 f'<section id="references" class="paper-section">\n'
-                f'  <h2>References</h2>\n'
+                f'  <h1>References</h1>\n'
                 f'  <ol class="ref-list">{refs_html}</ol>\n'
                 f'</section>'
             )
@@ -714,6 +714,25 @@ def render_sections_html(sections: list[str]) -> tuple[str, list[tuple[str, str]
     return "\n\n".join(html_parts), toc_entries
 
 
+def css_font_stack(font_name: str) -> str:
+    clean = font_name.strip().replace('"', "")
+    low = clean.lower()
+    if "times" in low:
+        return '"Times New Roman", Times, "Nimbus Roman", "Liberation Serif", Georgia, serif'
+    if any(k in low for k in ("arial", "helvetica", "sans", "calibri", "roboto", "inter")):
+        return f'"{clean}", Arial, Helvetica, sans-serif'
+    if any(k in low for k in ("courier", "mono", "consolas")):
+        return f'"{clean}", "Courier New", Courier, monospace'
+    return f'"{clean}", "Times New Roman", Times, Georgia, serif'
+
+
+def css_weight_style(fmt: str) -> tuple[str, str]:
+    f = fmt.lower()
+    weight = "700" if "bold" in f else "400"
+    style = "italic" if "italic" in f else "normal"
+    return weight, style
+
+
 def generate_index_html(meta: dict, sections: list[str], typography: dict) -> None:
     body_html, toc_entries = render_sections_html(sections)
     updated_utc = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
@@ -722,11 +741,26 @@ def generate_index_html(meta: dict, sections: list[str], typography: dict) -> No
         f'<li><a href="#{html.escape(slug)}">{html.escape(label)}</a></li>'
         for slug, label in toc_entries
     )
-    kw_badges = "\n".join(
-        f'<span class="kw-badge">{html.escape(k.strip())}</span>'
-        for k in meta["keywords"].split(",")
-        if k.strip()
-    )
+
+    t_title = typography["title"]
+    t_sec = typography["section"]
+    t_sub = typography["subsection"]
+    t_body = typography["body"]
+
+    title_font = css_font_stack(t_title["font"])
+    sec_font = css_font_stack(t_sec["font"])
+    sub_font = css_font_stack(t_sub["font"])
+    body_font = css_font_stack(t_body["font"])
+
+    title_weight, title_style = css_weight_style(t_title["format"])
+    sec_weight, sec_style = css_weight_style(t_sec["format"])
+    sub_weight, sub_style = css_weight_style(t_sub["format"])
+    body_weight, body_style = css_weight_style(t_body["format"])
+
+    title_size = t_title["size"]
+    sec_size = t_sec["size"]
+    sub_size = t_sub["size"]
+    body_size = t_body["size"]
 
     page_html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -744,20 +778,22 @@ def generate_index_html(meta: dict, sections: list[str], typography: dict) -> No
     :root {{
       --bg: #f6f7f9;
       --paper: #ffffff;
-      --ink: #1a202c;
+      --ink: #000000;
+      --ui-ink: #1a202c;
       --muted: #4a5568;
       --accent: #1d4ed8;
+      --latex-link: #000099;
       --accent-soft: #eff6ff;
       --border: #e2e8f0;
-      --shadow: 0 4px 24px rgba(15, 23, 42, 0.06);
+      --shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
     }}
     * {{ box-sizing: border-box; }}
     body {{
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: var(--bg);
-      color: var(--ink);
-      line-height: 1.65;
+      color: var(--ui-ink);
+      line-height: 1.5;
     }}
     .topbar {{
       position: sticky;
@@ -783,7 +819,7 @@ def generate_index_html(meta: dict, sections: list[str], typography: dict) -> No
       gap: 0.6rem;
       font-weight: 700;
       font-size: 0.95rem;
-      color: var(--ink);
+      color: var(--ui-ink);
     }}
     .status-pill {{
       font-size: 0.72rem;
@@ -814,7 +850,7 @@ def generate_index_html(meta: dict, sections: list[str], typography: dict) -> No
       cursor: pointer;
       border: 1px solid var(--border);
       background: #fff;
-      color: var(--ink);
+      color: var(--ui-ink);
       transition: all 0.15s ease;
     }}
     .btn:hover {{
@@ -871,7 +907,7 @@ def generate_index_html(meta: dict, sections: list[str], typography: dict) -> No
     .toc a {{
       color: var(--muted);
       text-decoration: none;
-      font-size: 0.88rem;
+      font-size: 0.85rem;
       display: block;
       padding: 0.2rem 0.45rem;
       border-radius: 6px;
@@ -890,127 +926,209 @@ def generate_index_html(meta: dict, sections: list[str], typography: dict) -> No
     .meta-box div {{
       margin-bottom: 0.35rem;
     }}
+
+    /* === Paper Sheet: Mirrors LaTeX main.tex typography from instructions.md === */
     .paper-card {{
       background: var(--paper);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 2.5rem 3rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      max-width: 210mm;
+      margin: 0 auto;
+      padding: 16mm 18mm 22mm;
       box-shadow: var(--shadow);
-      font-family: "Times New Roman", Times, Georgia, serif;
+      color: var(--ink);
+      font-family: {body_font};
+      font-size: {body_size}pt;
+      font-weight: {body_weight};
+      font-style: {body_style};
+      line-height: 1.25;
+    }}
+    .paper-running-header {{
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-family: {body_font};
+      font-size: {max(body_size - 1, 7)}pt;
+      border-bottom: 0.4pt solid #000;
+      padding-bottom: 3pt;
+      margin-bottom: 14pt;
+    }}
+    .paper-running-author {{
+      font-style: italic;
     }}
     .paper-header {{
       text-align: center;
-      padding-bottom: 1.5rem;
-      margin-bottom: 1.75rem;
-      border-bottom: 1px solid var(--border);
+      margin-bottom: 10pt;
     }}
     .paper-title {{
-      font-size: 1.85rem;
-      line-height: 1.25;
-      margin: 0 0 0.65rem;
-      font-weight: 700;
-      color: #0f172a;
+      font-family: {title_font};
+      font-size: {title_size}pt;
+      font-weight: {title_weight};
+      font-style: {title_style};
+      line-height: 1.22;
+      margin: 0 0 8pt;
+      color: var(--ink);
     }}
     .paper-author {{
-      font-size: 1.08rem;
-      margin: 0.25rem 0;
-      font-weight: 500;
+      font-family: {body_font};
+      font-size: 10pt;
+      font-weight: 400;
+      line-height: 1.2;
+      margin: 0 0 3pt;
     }}
     .paper-affiliation {{
-      font-size: 0.92rem;
+      font-family: {body_font};
+      font-size: 9pt;
       font-style: italic;
-      color: var(--muted);
-      margin: 0.2rem 0;
+      line-height: 1.22;
+      color: var(--ink);
+      margin: 0 0 2pt;
     }}
     .paper-contacts {{
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size: 0.82rem;
-      color: var(--muted);
+      font-family: "Courier New", Courier, ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 9pt;
+      line-height: 1.22;
+      color: var(--ink);
     }}
-    .abstract-box {{
-      background: #f8fafc;
-      border-left: 3px solid var(--accent);
-      padding: 1rem 1.25rem;
-      border-radius: 0 8px 8px 0;
-      margin-bottom: 1.25rem;
-      font-size: 0.96rem;
+    .frontmatter-rule-box {{
+      border-top: 0.4pt solid #000;
+      border-bottom: 0.4pt solid #000;
+      padding: 6pt 0;
+      margin: 8pt 0 12pt;
+      font-family: {body_font};
+      font-size: {body_size}pt;
+      font-weight: {body_weight};
+      font-style: {body_style};
+      line-height: 1.28;
+      text-align: justify;
     }}
-    .keywords {{
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.4rem;
-      align-items: center;
-      margin-bottom: 1.75rem;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    .abstract-line {{
+      margin: 0 0 5pt;
     }}
-    .kw-label {{
-      font-size: 0.78rem;
-      font-weight: 700;
-      color: var(--muted);
-      text-transform: uppercase;
-      margin-right: 0.2rem;
+    .keywords-line {{
+      margin: 0;
     }}
-    .kw-badge {{
-      font-size: 0.78rem;
-      background: #f1f5f9;
-      color: #334155;
-      padding: 0.18rem 0.55rem;
-      border-radius: 999px;
-      border: 1px solid #e2e8f0;
+    .keywords-value {{
+      font-style: italic;
     }}
     .paper-columns {{
       column-count: 2;
-      column-gap: 2.2rem;
-      font-size: 0.98rem;
+      column-gap: 6mm;
+      font-family: {body_font};
+      font-size: {body_size}pt;
+      font-weight: {body_weight};
+      font-style: {body_style};
+      line-height: 1.25;
       text-align: justify;
+      hyphens: auto;
+    }}
+    .paper-columns a {{
+      color: var(--latex-link);
+      text-decoration: none;
+    }}
+    .paper-columns a:hover {{
+      text-decoration: underline;
+    }}
+    .paper-columns code {{
+      font-family: "Courier New", Courier, ui-monospace, monospace;
+      font-size: 0.95em;
     }}
     .paper-section {{
-      margin-bottom: 1.4rem;
+      margin-bottom: 8pt;
     }}
-    .paper-section h1, .paper-section h2 {{
-      font-size: 1.25rem;
-      font-weight: 700;
-      margin: 1.2rem 0 0.5rem;
-      color: #0f172a;
+    .paper-section p {{
+      margin: 0 0 5pt;
+    }}
+    /* Paragraph Titles (\\section) */
+    .paper-section h1 {{
+      font-family: {sec_font};
+      font-size: {sec_size}pt;
+      font-weight: {sec_weight};
+      font-style: {sec_style};
+      line-height: 1.22;
+      margin: 10pt 0 4pt;
+      color: var(--ink);
       break-after: avoid;
       text-align: left;
+      hyphens: none;
+    }}
+    .paper-section:first-child h1:first-child {{
+      margin-top: 0;
+    }}
+    /* Paragraph Subtitles (\\subsection) */
+    .paper-section h2 {{
+      font-family: {sub_font};
+      font-size: {sub_size}pt;
+      font-weight: {sub_weight};
+      font-style: {sub_style};
+      line-height: 1.22;
+      margin: 8pt 0 3pt;
+      color: var(--ink);
+      break-after: avoid;
+      text-align: left;
+      hyphens: none;
     }}
     .paper-section h3 {{
-      font-size: 1.08rem;
+      font-family: {sub_font};
+      font-size: {body_size}pt;
       font-weight: 700;
-      margin: 0.9rem 0 0.35rem;
-      color: #1e293b;
+      font-style: italic;
+      line-height: 1.22;
+      margin: 6pt 0 2pt;
+      color: var(--ink);
       break-after: avoid;
       text-align: left;
+    }}
+    .paper-section figure {{
+      margin: 8pt 0;
+      text-align: center;
+      break-inside: avoid;
+    }}
+    .paper-section figure img {{
+      max-width: 100%;
+      height: auto;
+    }}
+    .paper-section figcaption,
+    .paper-section caption {{
+      font-family: {body_font};
+      font-size: {max(body_size - 0.5, 7)}pt;
+      margin-bottom: 4pt;
+      text-align: center;
+      color: var(--ink);
     }}
     .paper-section table {{
       width: 100%;
       border-collapse: collapse;
-      margin: 1rem 0;
-      font-size: 0.86rem;
+      margin: 8pt 0;
+      font-family: {body_font};
+      font-size: {body_size}pt;
       break-inside: avoid;
       text-align: left;
     }}
     .paper-section th, .paper-section td {{
-      padding: 0.4rem 0.5rem;
-      border-bottom: 1px solid var(--border);
+      padding: 2.5pt 4pt;
     }}
     .paper-section thead th {{
-      border-top: 2px solid #0f172a;
-      border-bottom: 1px solid #0f172a;
+      border-top: 0.9pt solid #000;
+      border-bottom: 0.5pt solid #000;
       font-weight: 700;
     }}
     .paper-section tbody tr:last-child td {{
-      border-bottom: 2px solid #0f172a;
+      border-bottom: 0.9pt solid #000;
     }}
     .ref-list {{
       list-style: none;
       padding-left: 0;
-      font-size: 0.9rem;
+      margin: 4pt 0 0;
+      font-family: {body_font};
+      font-size: {body_size}pt;
+      line-height: 1.25;
       text-align: left;
     }}
     .ref-list li {{
-      margin-bottom: 0.5rem;
+      margin-bottom: 4pt;
+      padding-left: 16pt;
+      text-indent: -16pt;
     }}
     .pdf-view {{
       display: none;
@@ -1039,7 +1157,7 @@ def generate_index_html(meta: dict, sections: list[str], typography: dict) -> No
     @media (max-width: 960px) {{
       .layout {{ grid-template-columns: 1fr; }}
       .sidebar {{ position: static; }}
-      .paper-card {{ padding: 1.5rem; }}
+      .paper-card {{ padding: 1.25rem; }}
       .paper-columns {{ column-count: 1; }}
     }}
   </style>
@@ -1068,14 +1186,20 @@ def generate_index_html(meta: dict, sections: list[str], typography: dict) -> No
         {toc_html}
       </ul>
       <div class="meta-box">
-        <div><strong>Layout:</strong> 2-Column Journal</div>
-        <div><strong>Typography:</strong> Times New Roman ({typography["title"]["size"]}/{typography["section"]["size"]}/{typography["subsection"]["size"]}/{typography["body"]["size"]} pt)</div>
+        <div><strong>Layout:</strong> 2-Column Journal (A4)</div>
+        <div><strong>Font:</strong> {html.escape(t_body["font"])}</div>
+        <div><strong>Sizes:</strong> {title_size} / {sec_size} / {sub_size} / {body_size} pt</div>
         <div><strong>Updated:</strong> {updated_utc}</div>
       </div>
     </aside>
 
     <div>
       <article id="view-html" class="paper-card">
+        <div class="paper-running-header">
+          <span class="paper-running-author">{html.escape(meta["author"])}</span>
+          <span>1</span>
+        </div>
+
         <div class="paper-header">
           <h1 class="paper-title">{html.escape(meta["title"])}</h1>
           <div class="paper-author">{html.escape(meta["author"])}</div>
@@ -1083,14 +1207,10 @@ def generate_index_html(meta: dict, sections: list[str], typography: dict) -> No
           <div class="paper-contacts">{html.escape(meta["contacts"])}</div>
         </div>
 
-        <section id="abstract" class="abstract-box">
-          <strong>Abstract&mdash;</strong>{html.escape(meta["abstract"])}
+        <section id="abstract" class="frontmatter-rule-box">
+          <p class="abstract-line"><strong>Abstract&mdash;</strong>{html.escape(meta["abstract"])}</p>
+          <p class="keywords-line"><strong>Keywords&mdash;</strong><span class="keywords-value">{html.escape(meta["keywords"])}</span></p>
         </section>
-
-        <div class="keywords">
-          <span class="kw-label">Keywords:</span>
-          {kw_badges}
-        </div>
 
         <div class="paper-columns">
           {body_html}
