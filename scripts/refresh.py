@@ -71,6 +71,26 @@ def parse_style_line(text: str, defaults: dict) -> dict:
     return style
 
 
+def read_main_tex_metadata(path: Path) -> dict[str, str]:
+    """Read any custom paper metadata already defined in main.tex so direct edits are preserved."""
+    found: dict[str, str] = {}
+    if not path.exists():
+        return found
+    tex = path.read_text(encoding="utf-8", errors="ignore")
+    mapping = {
+        "PaperTitle": "title",
+        "PaperAuthor": "author",
+        "PaperAffiliation": "affiliation",
+        "PaperContacts": "contacts",
+        "PaperKeywords": "keywords",
+    }
+    for macro, key in mapping.items():
+        m = re.search(rf"\\newcommand\{{\\{macro}\}}\{{([^}}]+)\}}", tex)
+        if m and m.group(1).strip():
+            found[key] = m.group(1).strip()
+    return found
+
+
 def parse_instructions(path: Path) -> tuple[dict, list[dict], dict]:
     """Parse instructions.md into (metadata, ordered_sections, typography).
 
@@ -81,6 +101,8 @@ def parse_instructions(path: Path) -> tuple[dict, list[dict], dict]:
     """
     content = path.read_text(encoding="utf-8")
     meta = dict(DEFAULT_META)
+    # Preserve any metadata directly edited in main.tex (overridden below if set in instructions.md)
+    meta.update(read_main_tex_metadata(MAIN_TEX))
     typography = {k: dict(v) for k, v in DEFAULT_TYPOGRAPHY.items()}
     sections: list[dict] = []
 
@@ -99,6 +121,9 @@ def parse_instructions(path: Path) -> tuple[dict, list[dict], dict]:
             continue
         if "instructions for the formatting" in low or low.startswith("formatting"):
             mode = "formatting"
+            continue
+        if low.startswith("new instructions"):
+            mode = "notes"
             continue
 
         if mode == "initial":
