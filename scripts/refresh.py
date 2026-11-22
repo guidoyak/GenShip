@@ -196,10 +196,36 @@ def latex_escape_text(text: str) -> str:
     )
 
 
+def resolve_section_folder(slug: str, index: int) -> Path:
+    """Return ROOT / '{index:02d}_{slug}', migrating any existing folder for `slug`."""
+    target = ROOT / f"{index:02d}_{slug}"
+    if target.exists() and target.is_dir():
+        return target
+
+    pattern = re.compile(rf"^(?:\d+_)?{re.escape(slug)}$")
+    for entry in sorted(ROOT.iterdir()):
+        if entry.is_dir() and entry.name != target.name and pattern.match(entry.name):
+            print(f"Renaming section folder: {entry.name}/ -> {target.name}/")
+            shutil.move(str(entry), str(target))
+            return target
+
+    target.mkdir(parents=True, exist_ok=True)
+    return target
+
+
+def ensure_abstract_scaffold(default_abstract: str) -> tuple[str, Path]:
+    """Ensure 00_abstract/abstract.tex exists without overwriting user edits."""
+    folder = resolve_section_folder("abstract", 0)
+    tex_file = folder / "abstract.tex"
+    if not tex_file.exists():
+        tex_file.write_text(default_abstract.strip() + "\n", encoding="utf-8")
+    return folder.name, tex_file
+
+
 def ensure_section_scaffold(
-    section_name: str, subparagraphs: list[str] | None = None
-) -> tuple[str, Path]:
-    """Create folder and starter .tex (and .bib for references) if missing.
+    section_name: str, index: int, subparagraphs: list[str] | None = None
+) -> tuple[str, str, Path]:
+    """Create (or migrate) numbered folder `{index:02d}_{slug}/` and starter .tex.
 
     If `subparagraphs` are listed under this section in instructions.md (lines
     starting with `>`), any missing `\\subsection{...}` is appended cleanly to
@@ -207,8 +233,8 @@ def ensure_section_scaffold(
     """
     subparagraphs = subparagraphs or []
     slug = slugify(section_name)
-    folder = ROOT / slug
-    folder.mkdir(parents=True, exist_ok=True)
+    folder = resolve_section_folder(slug, index)
+    folder_name = folder.name
 
     if slug in ("references", "reference"):
         tex_file = folder / f"{slug}.tex"
@@ -233,15 +259,25 @@ def ensure_section_scaffold(
 """,
                 encoding="utf-8",
             )
+        expected_bib_line = f"\\bibliography{{{folder_name}/{slug}}}"
         if not tex_file.exists():
             tex_file.write_text(
                 f"""% Automatically managed references section
 \\bibliographystyle{{unsrtnat}}
-\\bibliography{{{slug}/{slug}}}
+{expected_bib_line}
 """,
                 encoding="utf-8",
             )
-        return slug, tex_file
+        else:
+            existing_ref = tex_file.read_text(encoding="utf-8")
+            updated_ref = re.sub(
+                r"\\bibliography\{[^}]+\}",
+                lambda _: expected_bib_line,
+                existing_ref,
+            )
+            if updated_ref != existing_ref:
+                tex_file.write_text(updated_ref, encoding="utf-8")
+        return folder_name, slug, tex_file
 
     # Regular section or appendix
     (folder / "images").mkdir(exist_ok=True)
@@ -289,7 +325,7 @@ are operational.
 \label{app:supplementary}
 
 Additional derivations, extended data tables, and supporting technical notes
-can be placed inside the \texttt{appendices/} folder and included here.
+can be placed inside this appendices folder and included here.
 """,
                 encoding="utf-8",
             )
@@ -326,7 +362,7 @@ folder's \\texttt{{images/}} subdirectory and tables in \\texttt{{tables/}}.
                 encoding="utf-8",
             )
 
-    return slug, tex_file
+    return folder_name, slug, tex_file
 
 
 def generate_main_tex(meta: dict, sections: list[dict], typography: dict) -> None:
@@ -343,32 +379,36 @@ def generate_main_tex(meta: dict, sections: list[dict], typography: dict) -> Non
     ext_sizes = {8, 9, 10, 11, 12, 14, 17, 20}
     doc_size_opt = f"{body_size}pt" if body_size in ext_sizes else "9pt"
 
-    slugs_and_names: list[tuple[str, str]] = []
-    for sec in sections:
+    abstract_folder, _ = ensure_abstract_scaffold(meta["abstract"])
+
+    section_records: list[tuple[str, str, str]] = []
+    for idx, sec in enumerate(sections, start=1):
         name = sec["title"]
-        slug, _ = ensure_section_scaffold(name, sec.get("subparagraphs", []))
-        slugs_and_names.append((slug, name))
+        folder_name, slug, _ = ensure_section_scaffold(
+            name, idx, sec.get("subparagraphs", [])
+        )
+        section_records.append((folder_name, slug, name))
 
     graphics_paths = []
-    for slug, _ in slugs_and_names:
+    for folder_name, slug, _ in section_records:
         if slug not in ("references", "reference"):
-            graphics_paths.append(f"{{{slug}/images/}}{{{slug}/}}")
+            graphics_paths.append(f"{{{folder_name}/images/}}{{{folder_name}/}}")
     graphics_path_str = "".join(graphics_paths)
 
     input_lines: list[str] = []
     appendix_started = False
-    for slug, name in slugs_and_names:
+    for folder_name, slug, name in section_records:
         if slug in ("appendices", "appendix"):
             if not appendix_started:
                 input_lines.append("")
                 input_lines.append(r"\appendix")
                 appendix_started = True
-            input_lines.append(f"\\input{{{slug}/{slug}}}")
+            input_lines.append(f"\\input{{{folder_name}/{slug}}}")
         elif slug in ("references", "reference"):
             input_lines.append("")
-            input_lines.append(f"\\input{{{slug}/{slug}}}")
+            input_lines.append(f"\\input{{{folder_name}/{slug}}}")
         else:
-            input_lines.append(f"\\input{{{slug}/{slug}}}")
+            input_lines.append(f"\\input{{{folder_name}/{slug}}}")
 
     inputs_block = "\n".join(input_lines)
 
@@ -468,7 +508,7 @@ def generate_main_tex(meta: dict, sections: list[dict], typography: dict) -> Non
     \\vspace{{6pt}}
     \\noindent\\rule{{\\textwidth}}{{0.4pt}}\\par
     \\vspace{{5pt}}
-    \\noindent\\textbf{{Abstract---}}{meta["abstract"]}\\par
+    \\noindent\\textbf{{Abstract---}}\\input{{{abstract_folder}/abstract}}\\par
     \\vspace{{5pt}}
     \\noindent\\textbf{{Keywords---}}\\textit{{\\PaperKeywords}}\\par
     \\vspace{{5pt}}
@@ -588,27 +628,59 @@ def preprocess_tex_for_html(
     return tex
 
 
+def render_abstract_html(meta: dict) -> str:
+    """Render 00_abstract/abstract.tex to inline HTML (falling back to meta['abstract'])."""
+    abstract_tex = ROOT / "00_abstract" / "abstract.tex"
+    if not abstract_tex.exists():
+        return html.escape(meta["abstract"])
+
+    raw_tex = abstract_tex.read_text(encoding="utf-8").strip()
+    if not raw_tex:
+        return html.escape(meta["abstract"])
+
+    labels, cites = parse_aux(ROOT / "main.aux")
+    prepped = preprocess_tex_for_html(raw_tex, labels, cites)
+    pandoc = shutil.which("pandoc")
+    if pandoc:
+        proc = subprocess.run(
+            [pandoc, "--from=latex", "--to=html5", "--mathjax"],
+            input=prepped,
+            cwd=str(ROOT),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        if proc.returncode == 0 and proc.stdout.strip():
+            rendered = proc.stdout.strip()
+            # Unwrap a single <p>...</p> so Abstract flows inline after "Abstract—"
+            m_single = re.fullmatch(r"<p>(.*)</p>", rendered, flags=re.DOTALL)
+            if m_single and "<p>" not in m_single.group(1):
+                return m_single.group(1).strip()
+            return rendered
+    return html.escape(raw_tex)
+
+
 def render_sections_html(sections: list[dict]) -> tuple[str, list[dict]]:
-    """Convert section .tex files to clean HTML using pandoc + main.aux numbers."""
+    """Convert section .tex files from numbered folders to clean HTML + TOC."""
     html_parts: list[str] = []
     toc_entries: list[dict] = []
     pandoc = shutil.which("pandoc")
     labels, cites = parse_aux(ROOT / "main.aux")
 
-    bib_candidates = [ROOT / "references" / "references.bib", ROOT / "reference" / "reference.bib"]
-    bib_file = next((b for b in bib_candidates if b.exists()), None)
-
-    for sec in sections:
+    for idx, sec in enumerate(sections, start=1):
         name = sec["title"]
         slug = slugify(name)
-        tex_file = ROOT / slug / f"{slug}.tex"
+        folder_name = f"{idx:02d}_{slug}"
+        folder = ROOT / folder_name
+        tex_file = folder / f"{slug}.tex"
         if not tex_file.exists():
             continue
 
         if slug in ("references", "reference"):
             toc_entries.append({"id": "references", "label": "References", "children": []})
+            bib_file = folder / f"{slug}.bib"
             ref_items = []
-            if bib_file and bib_file.exists():
+            if bib_file.exists():
                 bib_text = bib_file.read_text(encoding="utf-8", errors="ignore")
                 entries = re.split(r"@\w+\s*\{", bib_text)[1:]
                 parsed_entries = []
@@ -700,8 +772,8 @@ def render_sections_html(sections: list[dict]) -> tuple[str, list[dict]]:
         )
         # Resolve relative image paths in HTML if figures are referenced by filename
         rendered = re.sub(
-            r'src="(?!https?://|/|' + re.escape(slug) + r'/)([^"]+)"',
-            f'src="{slug}/images/\\1"',
+            r'src="(?!https?://|/|' + re.escape(folder_name) + r'/)([^"]+)"',
+            f'src="{folder_name}/images/\\1"',
             rendered,
         )
         html_parts.append(f'<section id="{html.escape(slug)}" class="paper-section">\n{rendered}\n</section>')
@@ -729,6 +801,7 @@ def css_weight_style(fmt: str) -> tuple[str, str]:
 
 
 def generate_index_html(meta: dict, sections: list[dict], typography: dict) -> None:
+    abstract_html = render_abstract_html(meta)
     body_html, toc_entries = render_sections_html(sections)
     updated_utc = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
 
@@ -1221,7 +1294,7 @@ def generate_index_html(meta: dict, sections: list[dict], typography: dict) -> N
         </div>
 
         <section id="abstract" class="frontmatter-rule-box">
-          <p class="abstract-line"><strong>Abstract&mdash;</strong>{html.escape(meta["abstract"])}</p>
+          <p class="abstract-line"><strong>Abstract&mdash;</strong>{abstract_html}</p>
           <p class="keywords-line"><strong>Keywords&mdash;</strong><span class="keywords-value">{html.escape(meta["keywords"])}</span></p>
         </section>
 

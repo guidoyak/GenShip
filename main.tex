@@ -58,7 +58,7 @@
 % --- Mathematics, Tables, Figures & Captions ---
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
-\graphicspath{{introduction/images/}{introduction/}{the_generational_problem_minimizing_spaceship_population_maintaining_variability_continuity_and_social_stability/images/}{the_generational_problem_minimizing_spaceship_population_maintaining_variability_continuity_and_social_stability/}{the_main_constraints_of_achieving_human_interstellar_travel/images/}{the_main_constraints_of_achieving_human_interstellar_travel/}{a_possible_low_tech_approach/images/}{a_possible_low_tech_approach/}{conclusions/images/}{conclusions/}{appendices/images/}{appendices/}}
+\graphicspath{{01_introduction/images/}{01_introduction/}{02_the_generational_problem_minimizing_spaceship_population_maintaining_variability_continuity_and_social_stability/images/}{02_the_generational_problem_minimizing_spaceship_population_maintaining_variability_continuity_and_social_stability/}{03_the_main_constraints_of_achieving_human_interstellar_travel/images/}{03_the_main_constraints_of_achieving_human_interstellar_travel/}{04_a_possible_low_tech_approach/images/}{04_a_possible_low_tech_approach/}{05_conclusions/images/}{05_conclusions/}{07_appendices/images/}{07_appendices/}}
 \usepackage{booktabs}
 \usepackage[font=small,labelfont=bf]{caption}
 \usepackage{subcaption}
@@ -94,7 +94,7 @@
     \vspace{6pt}
     \noindent\rule{\textwidth}{0.4pt}\par
     \vspace{5pt}
-    \noindent\textbf{Abstract---}This provisional working draft initializes the automated LaTeX scientific paper workflow for the GenShip project. All sections, typography rules, cross-references (figures, tables, equations), and bibliographic citations are synchronized directly from instructions.md.\par
+    \noindent\textbf{Abstract---}\input{00_abstract/abstract}\par
     \vspace{5pt}
     \noindent\textbf{Keywords---}\textit{\PaperKeywords}\par
     \vspace{5pt}
@@ -104,15 +104,15 @@
 ]
 
 % --- Paper Sections (Ordered as in instructions.md) ---
-\input{introduction/introduction}
-\input{the_generational_problem_minimizing_spaceship_population_maintaining_variability_continuity_and_social_stability/the_generational_problem_minimizing_spaceship_population_maintaining_variability_continuity_and_social_stability}
-\input{the_main_constraints_of_achieving_human_interstellar_travel/the_main_constraints_of_achieving_human_interstellar_travel}
-\input{a_possible_low_tech_approach/a_possible_low_tech_approach}
-\input{conclusions/conclusions}
+\input{01_introduction/introduction}
+\input{02_the_generational_problem_minimizing_spaceship_population_maintaining_variability_continuity_and_social_stability/the_generational_problem_minimizing_spaceship_population_maintaining_variability_continuity_and_social_stability}
+\input{03_the_main_constraints_of_achieving_human_interstellar_travel/the_main_constraints_of_achieving_human_interstellar_travel}
+\input{04_a_possible_low_tech_approach/a_possible_low_tech_approach}
+\input{05_conclusions/conclusions}
 
-\input{references/references}
+\input{06_references/references}
 
 \appendix
-\input{appendices/appendices}
+\input{07_appendices/appendices}
 
 \end{document}

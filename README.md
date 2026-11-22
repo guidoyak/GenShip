@@ -10,13 +10,13 @@ GenShip/
 ├── main.tex             # Auto-generated master LaTeX file (2-column scientific journal format)
 ├── main.pdf             # Compiled PDF output
 ├── index.html           # Public HTML landing page & PDF preview (GitHub Pages)
-├── scripts/refresh.py   # Syncs instructions.md, scaffolds new folders, compiles PDF & HTML
-├── introduction/        # Section .tex, images/, and tables/
-├── paragraph_1/         # Section .tex, images/, and tables/
-├── paragraph_2/         # Section .tex, images/, and tables/
-├── conclusions/         # Section .tex, images/, and tables/
-├── references/          # references.tex and references.bib
-└── appendices/          # Appendix .tex, images/, and tables/
+├── scripts/refresh.py   # Syncs instructions.md, scaffolds/renumbers folders, compiles PDF & HTML
+├── 00_abstract/         # abstract.tex
+├── 01_introduction/     # Section .tex, images/, and tables/
+├── 02_.../              # Numbered paragraph folders (auto-renumbered when order changes)
+├── 05_conclusions/      # Section .tex, images/, and tables/
+├── 06_references/       # references.tex and references.bib
+└── 07_appendices/       # Appendix .tex, images/, and tables/
 ```
 
 ## Refresh & Build
