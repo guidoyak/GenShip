@@ -71,12 +71,18 @@ def parse_style_line(text: str, defaults: dict) -> dict:
     return style
 
 
-def parse_instructions(path: Path) -> tuple[dict, list[str], dict]:
-    """Parse instructions.md into (metadata, ordered_sections, typography)."""
+def parse_instructions(path: Path) -> tuple[dict, list[dict], dict]:
+    """Parse instructions.md into (metadata, ordered_sections, typography).
+
+    Each item in ordered_sections is:
+        {"title": "<paragraph title>", "subparagraphs": ["<sub 1>", ...]}
+    Lines starting with '-' define paragraphs; lines starting with '>' define
+    subparagraphs belonging to the preceding paragraph.
+    """
     content = path.read_text(encoding="utf-8")
     meta = dict(DEFAULT_META)
     typography = {k: dict(v) for k, v in DEFAULT_TYPOGRAPHY.items()}
-    sections: list[str] = []
+    sections: list[dict] = []
 
     mode = "none"
     for raw_line in content.splitlines():
@@ -121,7 +127,11 @@ def parse_instructions(path: Path) -> tuple[dict, list[str], dict]:
             if line.startswith("-") or line.startswith("*"):
                 item = line.lstrip("-* ").rstrip(";,.").strip()
                 if item:
-                    sections.append(item)
+                    sections.append({"title": item, "subparagraphs": []})
+            elif line.startswith(">"):
+                sub = line.lstrip("> ").rstrip(";,.").strip()
+                if sub and sections:
+                    sections[-1]["subparagraphs"].append(sub)
 
         elif mode == "formatting":
             if low.startswith("title:"):
@@ -158,12 +168,8 @@ def parse_instructions(path: Path) -> tuple[dict, list[str], dict]:
 
     if not sections:
         sections = [
-            "Introduction",
-            "Paragraph 1",
-            "Paragraph 2",
-            "Conclusions",
-            "References",
-            "Appendices",
+            {"title": s, "subparagraphs": []}
+            for s in ("Introduction", "Paragraph 1", "Paragraph 2", "Conclusions", "References", "Appendices")
         ]
 
     return meta, sections, typography
@@ -181,8 +187,25 @@ def latex_format_cmd(fmt: str) -> str:
     return "".join(cmds)
 
 
-def ensure_section_scaffold(section_name: str) -> tuple[str, Path]:
-    """Create folder and starter .tex (and .bib for references) if missing."""
+def latex_escape_text(text: str) -> str:
+    return (
+        text.replace("&", r"\&")
+        .replace("%", r"\%")
+        .replace("#", r"\#")
+        .replace("_", r"\_")
+    )
+
+
+def ensure_section_scaffold(
+    section_name: str, subparagraphs: list[str] | None = None
+) -> tuple[str, Path]:
+    """Create folder and starter .tex (and .bib for references) if missing.
+
+    If `subparagraphs` are listed under this section in instructions.md (lines
+    starting with `>`), any missing `\\subsection{...}` is appended cleanly to
+    the section's `.tex` file without overwriting existing content.
+    """
+    subparagraphs = subparagraphs or []
     slug = slugify(section_name)
     folder = ROOT / slug
     folder.mkdir(parents=True, exist_ok=True)
@@ -245,60 +268,6 @@ literature~\cite{hein2012world,smith2014star}.
 
 Each section of this manuscript lives in its own dedicated directory containing
 its LaTeX source, figures (\texttt{images/}), and tables (\texttt{tables/}).
-Cross-references such as \cref{sec:paragraph_1} and \cref{tab:sample_parameters}
-update automatically whenever sections, figures, tables, or citations are added
-or reordered.
-""",
-                encoding="utf-8",
-            )
-        elif slug == "paragraph_1":
-            tex_file.write_text(
-                r"""\section{Paragraph 1}
-\label{sec:paragraph_1}
-
-Content for Paragraph 1 will be developed here. You can organize subsections
-using \texttt{\textbackslash subsection\{...\}}, which automatically inherits
-the 11\,pt bold Times New Roman styling configured in \texttt{instructions.md}.
-
-\subsection{Methodology Overview}
-\label{subsec:methodology}
-
-\Cref{tab:sample_parameters} provides a placeholder table demonstrating
-standard journal formatting and automatic cross-referencing across paragraphs.
-
-\begin{table}[htbp]
-  \centering
-  \caption{Provisional baseline parameters for template verification.}
-  \label{tab:sample_parameters}
-  \begin{tabular}{@{}lcc@{}}
-    \toprule
-    Parameter & Symbol & Provisional Value \\
-    \midrule
-    Target Distance & $d$ & $4.24\text{ ly}$ \\
-    Cruise Velocity & $v_c$ & $0.05\,c$ \\
-    Mission Duration & $T$ & $\sim 85\text{ yr}$ \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-""",
-                encoding="utf-8",
-            )
-        elif slug == "paragraph_2":
-            tex_file.write_text(
-                r"""\section{Paragraph 2}
-\label{sec:paragraph_2}
-
-Content for Paragraph 2 will be developed here. Notice how references to
-elements in other folders—such as \cref{tab:sample_parameters} in
-\cref{sec:paragraph_1} or literature entries~\cite{hein2012world}—remain
-automatically synchronized after every rebuild.
-
-\subsection{Preliminary Discussion}
-\label{subsec:discussion}
-
-Figures placed inside \texttt{paragraph\_2/images/} can be included with
-\texttt{\textbackslash includegraphics} and referenced anywhere in the document
-using \texttt{\textbackslash label\{fig:...\}} and \texttt{\textbackslash cref\{fig:...\}}.
 """,
                 encoding="utf-8",
             )
@@ -325,12 +294,7 @@ can be placed inside the \texttt{appendices/} folder and included here.
                 encoding="utf-8",
             )
         else:
-            safe_name = (
-                section_name.replace("&", r"\&")
-                .replace("%", r"\%")
-                .replace("#", r"\#")
-                .replace("_", r"\_")
-            )
+            safe_name = latex_escape_text(section_name)
             tex_file.write_text(
                 f"""\\section{{{safe_name}}}
 \\label{{sec:{slug}}}
@@ -341,10 +305,31 @@ folder's \\texttt{{images/}} subdirectory and tables in \\texttt{{tables/}}.
                 encoding="utf-8",
             )
 
+    # Ensure any '>' subparagraphs from instructions.md exist as \subsection blocks
+    if subparagraphs and tex_file.exists():
+        existing = tex_file.read_text(encoding="utf-8")
+        additions: list[str] = []
+        for sub_title in subparagraphs:
+            sub_slug = slugify(sub_title)
+            safe_sub = latex_escape_text(sub_title)
+            label_marker = f"\\label{{subsec:{sub_slug}}}"
+            title_marker = f"\\subsection{{{safe_sub}}}"
+            if label_marker not in existing and title_marker not in existing:
+                additions.append(
+                    f"\n\\subsection{{{safe_sub}}}\n"
+                    f"\\label{{subsec:{sub_slug}}}\n\n"
+                    f"Content for \\emph{{{safe_sub}}} goes here.\n"
+                )
+        if additions:
+            tex_file.write_text(
+                existing.rstrip() + "\n" + "".join(additions),
+                encoding="utf-8",
+            )
+
     return slug, tex_file
 
 
-def generate_main_tex(meta: dict, sections: list[str], typography: dict) -> None:
+def generate_main_tex(meta: dict, sections: list[dict], typography: dict) -> None:
     body_size = typography["body"]["size"]
     title_size = typography["title"]["size"]
     sec_size = typography["section"]["size"]
@@ -359,8 +344,9 @@ def generate_main_tex(meta: dict, sections: list[str], typography: dict) -> None
     doc_size_opt = f"{body_size}pt" if body_size in ext_sizes else "9pt"
 
     slugs_and_names: list[tuple[str, str]] = []
-    for name in sections:
-        slug, _ = ensure_section_scaffold(name)
+    for sec in sections:
+        name = sec["title"]
+        slug, _ = ensure_section_scaffold(name, sec.get("subparagraphs", []))
         slugs_and_names.append((slug, name))
 
     graphics_paths = []
@@ -602,24 +588,25 @@ def preprocess_tex_for_html(
     return tex
 
 
-def render_sections_html(sections: list[str]) -> tuple[str, list[tuple[str, str]]]:
+def render_sections_html(sections: list[dict]) -> tuple[str, list[dict]]:
     """Convert section .tex files to clean HTML using pandoc + main.aux numbers."""
     html_parts: list[str] = []
-    toc_entries: list[tuple[str, str]] = []
+    toc_entries: list[dict] = []
     pandoc = shutil.which("pandoc")
     labels, cites = parse_aux(ROOT / "main.aux")
 
     bib_candidates = [ROOT / "references" / "references.bib", ROOT / "reference" / "reference.bib"]
     bib_file = next((b for b in bib_candidates if b.exists()), None)
 
-    for name in sections:
+    for sec in sections:
+        name = sec["title"]
         slug = slugify(name)
         tex_file = ROOT / slug / f"{slug}.tex"
         if not tex_file.exists():
             continue
 
         if slug in ("references", "reference"):
-            toc_entries.append(("references", "References"))
+            toc_entries.append({"id": "references", "label": "References", "children": []})
             ref_items = []
             if bib_file and bib_file.exists():
                 bib_text = bib_file.read_text(encoding="utf-8", errors="ignore")
@@ -659,7 +646,6 @@ def render_sections_html(sections: list[str]) -> tuple[str, list[tuple[str, str]
             )
             continue
 
-        toc_entries.append((slug, name))
         raw_tex = tex_file.read_text(encoding="utf-8")
         prepped_tex = preprocess_tex_for_html(raw_tex, labels, cites)
         rendered = ""
@@ -677,7 +663,7 @@ def render_sections_html(sections: list[str]) -> tuple[str, list[tuple[str, str]
                 rendered = proc.stdout.strip()
 
         if not rendered:
-            rendered = f"<h2>{html.escape(name)}</h2><pre>{html.escape(raw_tex)}</pre>"
+            rendered = f"<h1>{html.escape(name)}</h1><pre>{html.escape(raw_tex)}</pre>"
 
         # Prefix section/subsection headings with their exact LaTeX numbers from main.aux
         def _number_heading(m: re.Match) -> str:
@@ -689,6 +675,15 @@ def render_sections_html(sections: list[str]) -> tuple[str, list[tuple[str, str]
             return m.group(0)
 
         rendered = re.sub(r'<(h[123])\s+id="([^"]+)">(.*?)</\1>', _number_heading, rendered)
+
+        # Collect rendered subsections (h2) for nested sidebar TOC
+        sub_toc: list[tuple[str, str]] = []
+        for m_sub in re.finditer(r'<h2\s+id="([^"]+)">(.*?)</h2>', rendered, flags=re.DOTALL):
+            sub_id = m_sub.group(1)
+            sub_txt = re.sub(r"<[^>]+>", "", m_sub.group(2)).strip()
+            sub_toc.append((sub_id, sub_txt))
+        toc_entries.append({"id": slug, "label": name, "children": sub_toc})
+
         # Prefix table captions with "Table N: "
         def _number_table_caption(m: re.Match) -> str:
             tid, caption_inner = m.group(1), m.group(2)
@@ -733,14 +728,22 @@ def css_weight_style(fmt: str) -> tuple[str, str]:
     return weight, style
 
 
-def generate_index_html(meta: dict, sections: list[str], typography: dict) -> None:
+def generate_index_html(meta: dict, sections: list[dict], typography: dict) -> None:
     body_html, toc_entries = render_sections_html(sections)
     updated_utc = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
 
-    toc_html = "\n".join(
-        f'<li><a href="#{html.escape(slug)}">{html.escape(label)}</a></li>'
-        for slug, label in toc_entries
-    )
+    toc_lines: list[str] = []
+    for entry in toc_entries:
+        item_html = f'<li><a href="#{html.escape(entry["id"])}">{html.escape(entry["label"])}</a>'
+        if entry["children"]:
+            sub_items = "\n".join(
+                f'<li><a href="#{html.escape(cid)}">{html.escape(clabel)}</a></li>'
+                for cid, clabel in entry["children"]
+            )
+            item_html += f'\n<ul class="toc-sub">\n{sub_items}\n</ul>'
+        item_html += "</li>"
+        toc_lines.append(item_html)
+    toc_html = "\n".join(toc_lines)
 
     t_title = typography["title"]
     t_sec = typography["section"]
@@ -915,6 +918,16 @@ def generate_index_html(meta: dict, sections: list[str], typography: dict) -> No
     .toc a:hover {{
       color: var(--accent);
       background: var(--accent-soft);
+    }}
+    .toc-sub {{
+      list-style: none;
+      margin: 0.15rem 0 0.25rem;
+      padding-left: 0.85rem;
+      border-left: 1px solid var(--border);
+    }}
+    .toc-sub a {{
+      font-size: 0.78rem;
+      padding: 0.14rem 0.4rem;
     }}
     .meta-box {{
       margin-top: 1rem;
@@ -1258,7 +1271,11 @@ def main() -> int:
         return 1
 
     meta, sections, typography = parse_instructions(INSTRUCTIONS_FILE)
-    print(f"Parsed {len(sections)} sections from instructions.md: {', '.join(sections)}")
+    summary = ", ".join(
+        f"{s['title']} ({len(s['subparagraphs'])} sub)" if s["subparagraphs"] else s["title"]
+        for s in sections
+    )
+    print(f"Parsed {len(sections)} sections from instructions.md: {summary}")
     generate_main_tex(meta, sections, typography)
     print("Generated main.tex")
     compile_pdf()
